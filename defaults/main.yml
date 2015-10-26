@@ -1,0 +1,32 @@
+---
+# defaults file for ansible-datacollector
+sdc_version: 1.1.1
+sdc_release: "streamsets-datacollector-{{ sdc_version }}"
+sdc_release_url: "http://archives.streamsets.com.s3.amazonaws.com/datacollector/{{ sdc_version }}/tarball/{{ sdc_release }}.tgz"
+# defaults for a single instance installation
+sdc_install_base: /opt/streamsets/datacollector
+sdc_dist: "{{ sdc_install_base }}/{{ sdc_version }}"
+sdc_home: "{{ sdc_dist }}"
+sdc_instance: datacollector
+sdc_user: sdc
+sdc_group: sdc
+sdc_data_dir: "/var/lib/streamsets/{{ sdc_instance }}"
+sdc_resources_dir: "/var/lib/streamsets/resources"
+sdc_log_dir: "/var/log/streamsets/{{ sdc_instance }}"
+sdc_conf_dir: "/etc/streamsets/{{ sdc_instance }}"
+# commonly tuned settings for sdc.properties.
+# full list of variables can be found by looking at templates/sdc.properties.j2
+http_port: 18630
+https_port: -1
+sdc_keystore_path: keystore.jks
+sdc_keystore_password: "@sdc-keystore-password.txt@"
+http_authentication: form
+kerberos_client_enabled: "false"
+kerberos_client_principal: sdc/_HOST@EXAMPLE.COM
+kerberos_client_keytab: sdc.keytab
+preview_max_batch_size: 10
+preview_max_batch_size: 10
+production_max_batch_size: 1000
+production_max_error_records_per_stage: 100
+production_max_pipeline_errors: 100
+runtime_conf_location: embedded
