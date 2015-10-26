@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: Adam Kunicki
+  description: Role for StreamSets Data Collector (https://streamsets.com)
+  company: StreamSets
+  license: Apache
+  min_ansible_version: 1.9
+  platforms:
+  - name: EL
+    versions:
+    - 6
+    - 7
+  - name: Ubuntu
+    versions:
+    - trusty
+  categories:
+  - system
+dependencies: []
