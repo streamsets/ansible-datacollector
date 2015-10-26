@@ -1,0 +1,97 @@
+---
+# file: roles/sdc/tasks/main.yml
+- name: Create deployment group
+  group: name="{{ sdc_group }}" system=yes
+
+- name: Create deployment user
+  user: name="{{ sdc_user }}" createhome=no system=yes group="{{ sdc_group }}"
+
+- name: Make temporary download dir
+  file: dest="/tmp/sdc" state=directory mode=755 owner="{{ sdc_user }}" group="{{ sdc_group }}"
+
+- name: Fetch SDC tarball
+  sudo_user: "{{ sdc_user }}"
+  get_url:
+    url="{{ sdc_release_url }}"
+    dest="/tmp/sdc/{{ sdc_release }}.tgz"
+  register: new_sdc_tarball
+
+- name: Create installation directory
+  file: dest="{{ sdc_install_base }}" state=directory mode=755 owner="{{ sdc_user }}" group="{{ sdc_group }}"
+
+# In case we don't have a new tarball but its not been extracted we do an extra check.
+- name: Check for existing installation
+  stat: path="{{ sdc_dist }}"
+  register: p
+
+- name: Extract SDC tarball
+  sudo_user: "{{ sdc_user }}"
+  unarchive:
+    src="/tmp/sdc/{{ sdc_release }}.tgz"
+    dest="{{ sdc_install_base }}/"
+    copy=no
+  register: sdc_tarball_extracted
+  when: new_sdc_tarball | changed or p.stat.isdir is not defined
+
+- name: Rename to Version
+  command: "mv {{ sdc_install_base }}/{{ sdc_release }} /{{ sdc_install_base }}/{{ sdc_version }}"
+  when: sdc_tarball_extracted | changed
+
+- name: Symlink to current
+  file:
+    src="{{ sdc_dist }}"
+    dest="{{ sdc_install_base }}/current"
+    state=link
+
+- name: Create system dirs
+  file:
+    dest="{{ item }}"
+    state=directory
+    mode=0755
+    owner={{ sdc_user }}
+    group={{ sdc_group }}
+  with_items:
+    - "{{ sdc_home }}/bin"
+    - "{{ sdc_home }}/etc"
+    - "{{ sdc_home }}/libexec"
+
+- name: Create SDC_CONF dir
+  file:
+    dest="{{ sdc_conf_dir }}"
+    state=directory
+    mode=0755
+    owner={{ sdc_user }}
+    group={{ sdc_group }}
+
+# Not all configs have been templated yet. These are all the default configs.
+- name: Copy default configs
+  sudo_user: "{{ sdc_user }}"
+  command: "cp {{ sdc_dist }}/etc/{{ item }} {{ sdc_conf_dir }}/"
+  args:
+    creates: "{{ sdc_conf_dir }}/{{ item }}"
+  with_items:
+    - basic-realm.properties
+    - digest-realm.properties
+    - email-password.txt
+    - form-realm.properties
+    - keystore-password.txt
+    - keystore.jks
+    - sdc-log4j.properties
+    - sdc-security.policy
+    - stagelibswhitelist.properties
+    - sdc.properties
+  when: sdc_conf_dir != "{{ sdc_dist }}/etc"
+
+# Install templated configurations
+- name: Deploy init script
+  template: dest=/etc/init.d/{{ sdc_instance }} src=initd.j2 owner=root group=root mode=755
+  notify: Restart StreamSets Data Collector
+
+- name: Deploy env script
+  template: dest={{ sdc_home }}/libexec/sdcd-env.sh src=sdcd-env.sh.j2 owner={{ sdc_user }} group={{ sdc_user }} mode=755
+  notify: Restart StreamSets Data Collector
+
+- name: Deploy config template
+  sudo_user: "{{ sdc_user }}"
+  template: dest={{ sdc_conf_dir }}/sdc.properties src=sdc.properties.j2
+  notify: Restart StreamSets Data Collector

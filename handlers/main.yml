@@ -1,0 +1,5 @@
+---
+# handlers file for ansible-datacollector
+- name: Restart StreamSets Data Collector
+  sudo: yes
+  service: name={{ sdc_instance }} state=restarted
