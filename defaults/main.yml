@@ -30,3 +30,12 @@ production_max_batch_size: 1000
 production_max_error_records_per_stage: 100
 production_max_pipeline_errors: 100
 runtime_conf_location: embedded
+# JMX Configuration
+jmx_enable: false
+jmx_local_only: false
+# jmx_port: 3333
+jmx_authenticate: false
+# jmx_monitor_user: streamsetsMonitor
+# jmx_monitor_password: mysecretpassword
+# SSL certificate must be trusted by the JVM by default or you must configure and add it to the truststore/keystore
+jmx_ssl: false

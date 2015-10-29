@@ -58,6 +58,24 @@ export SDC_ROOT_CLASSPATH=${SDC_DIST}/root-lib/'*'
 #
 export SDC_JAVA_OPTS="-Xmx1024m -Xms1024m -XX:PermSize=128m -XX:MaxPermSize=256m -server ${SDC_JAVA_OPTS}"
 
+{% if jmx_enable == true %}
+# JMX Configuration
+export SDC_JAVA_OPTS="${SDC_JAVA_OPTS} -Dcom.sun.management.jmxremote \
+-Dcom.sun.management.jmxremote.port={{ jmx_port }} \
+-Dcom.sun.management.jmxremote.local.only={{ jmx_local_only | lower }} \
+-Dcom.sun.management.jmxremote.authenticate={{ jmx_authenticate | lower }} \
+{% if jmx_authenticate == true and jmx_enable == true %}
+-Dcom.sun.management.jmxremote.password.file=${SDC_CONF}/jmxremote.password \
+-Dcom.sun.management.jmxremote.access.file=${SDC_CONF}/jmxremote.access \
+{% endif %}
+{% if jmx_ssl == true %}
+-Djavax.net.ssl.keyStore={{ jmx_keystore | default("${SDC_CONF}/keystore.jks") }} \
+-Djavax.net.ssl.keyStorePassword={{ jmx_keystore_password | default("$(cat ${SDC_CONF}/keystore-password.txt)") }} \
+-Dcom.sun.management.jmxremote.registry.ssl={{ jmx_ssl | lower }}"
+{% endif %}
+-Dcom.sun.management.jmxremote.ssl={{ jmx_ssl | lower }}"
+{% endif %}
+
 # Enables/disables the JVM security manager
 #
 export SDC_SECURITY_MANAGER_ENABLED={{ sdc_enable_security_manager | default("true") }}

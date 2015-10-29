@@ -80,7 +80,11 @@
   notify: "Restart {{ sdc_instance }}"
 
 - name: Deploy env script
-  template: dest="{{ sdc_libexec_dir }}/sdcd-env.sh" src=sdcd-env.sh.j2 owner={{ sdc_user }} group={{ sdc_user }} mode=755
+  template:
+    dest="{{ sdc_libexec_dir }}/sdcd-env.sh"
+    src=sdcd-env.sh.j2 owner="{{ sdc_user }}"
+    group="{{ sdc_group }}"
+    mode=755
   notify: "Restart {{ sdc_instance }}"
 
 - name: Deploy config template
@@ -88,7 +92,30 @@
   template: dest="{{ sdc_conf_dir }}/sdc.properties" src=sdc.properties.j2
   notify: "Restart {{ sdc_instance }}"
 
+- name: Install security policy
+  sudo_user: "{{ sdc_user }}"
+  template: dest="{{ sdc_conf_dir }}/sdc-security.policy" src=sdc-security.policy.j2
+  notify: "Restart {{ sdc_instance }}"
+
+- name: Install JMX access control files
+  sudo_user: "{{ sdc_user }}"
+  template:
+    dest="{{ sdc_conf_dir }}/{{ item }}"
+    src="{{ item }}.j2"
+    owner="{{ sdc_user }}"
+    group="{{ sdc_group }}"
+    mode=400
+  with_items:
+    - jmxremote.access
+    - jmxremote.password
+  notify: "Restart {{ sdc_instance }}"
+  when: jmx_authenticate == true
+
 - name: systemd daemon-reload
   sudo: yes
   command: /usr/bin/systemctl daemon-reload
   when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7' and sdc_init_updated | changed
+
+- name: "Ensure {{ sdc_instance }} is running"
+  sudo: yes
+  service: name="{{ sdc_instance }}" state=started
