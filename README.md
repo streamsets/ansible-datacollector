@@ -32,6 +32,27 @@ single machine you can specify custom values for `sdc_instance` and `http_port`
          - { role: streamsets.datacollector, sdc_instance: 'datacollector_1', http_port: 18630 }
          - { role: streamsets.datacollector, sdc_instance: 'datacollector_2', http_port: 18640 }
 
+To enable JMX with no SSL or authentication configure your vars or host_vars file with:
+
+    jmx_enable: true
+    jmx_port: <port number>
+    jmx_authenticate: false
+    jmx_ssl: false
+    
+Enabling JMX with authentication also requires specifying a username and password. For example:
+
+    jmx_authenticate: true
+    jmx_monitor_user: streamsetsMonitor
+    jmx_monitor_password: mysecretpassword
+    
+An entry in `${SDC_CONF}/sdc-security.policy` will automatically be added to allow access to all MBeans.
+
+Enabling SSL will use the $SDC_CONF/keystore.jks by default. To override this setting set the following parameters:
+
+    jmx_keystore: </absolute/path/to/keystore>
+    jmx_keystore_password: <password or $(cat /path/to/password_file.txt)>
+    
+
 License
 -------
 
