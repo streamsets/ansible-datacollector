@@ -48,6 +48,7 @@ grant codebase "file://${sdc.dist.dir}/user-libs/-" {
   permission java.util.PropertyPermission "*", "read";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  permission java.io.FilePermission "${sdc.dist.dir}/user-libs/streamsets-datacollector-dev-lib/lib/*", "read";
 };
 
 // For JARs to be available to all stage libraries
@@ -55,7 +56,7 @@ grant codebase "file://${sdc.dist.dir}/libs-common-lib/-" {
   permission java.security.AllPermission;
 };
 
-{% if jmx_enable == true %}
+{% if jmx_authenticate == true %}
 grant principal javax.management.remote.JMXPrincipal "{{ jmx_monitor_user }}" {
   permission javax.management.MBeanPermission "*", "*";
 };

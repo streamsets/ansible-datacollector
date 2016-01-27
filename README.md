@@ -12,7 +12,7 @@ system. Oracle Java 8 is recommended.
 Role Variables
 --------------
 
-Defaults are provided for the most commonly changed parameters in
+Defaults and examples are provided for the most commonly changed parameters in
 `defaults/main.yml`. For a full list of available variables please review the
 templates directly.
 

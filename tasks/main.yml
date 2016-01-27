@@ -10,7 +10,7 @@
   file: dest="/tmp/sdc" state=directory mode=755 owner="{{ sdc_user }}" group="{{ sdc_group }}"
 
 - name: Fetch SDC tarball
-  sudo_user: "{{ sdc_user }}"
+  become_user: "{{ sdc_user }}"
   get_url:
     url="{{ sdc_release_url }}"
     dest="/tmp/sdc/{{ sdc_release }}.tgz"
@@ -25,7 +25,7 @@
   register: sdc_dist_exists
 
 - name: Extract SDC tarball
-  sudo_user: "{{ sdc_user }}"
+  become_user: "{{ sdc_user }}"
   unarchive:
     src="/tmp/sdc/{{ sdc_release }}.tgz"
     dest="{{ sdc_install_base }}/"
@@ -34,7 +34,7 @@
   when: new_sdc_tarball | changed or sdc_dist_exists.stat.isdir is not defined
 
 - name: Rename to Version
-  command: "mv {{ sdc_install_base }}/{{ sdc_release }} /{{ sdc_install_base }}/{{ sdc_version }}"
+  command: "mv {{ sdc_install_base }}/{{ sdc_release }} {{ sdc_install_base }}/{{ sdc_version }}"
   when: sdc_tarball_extracted | changed
 
 - name: Symlink to current
@@ -56,7 +56,7 @@
 
 # Not all configs have been templated yet. These are all the default configs.
 - name: Copy default configs
-  sudo_user: "{{ sdc_user }}"
+  become_user: "{{ sdc_user }}"
   command: "cp {{ sdc_dist }}/etc/{{ item }} {{ sdc_conf_dir }}/"
   args:
     creates: "{{ sdc_conf_dir }}/{{ item }}"
@@ -65,11 +65,13 @@
     - digest-realm.properties
     - email-password.txt
     - form-realm.properties
+    - kafka_client_jaas.conf
     - keystore-password.txt
     - keystore.jks
+    - ldap-bind-password.txt
+    - ldap-login.conf
     - sdc-log4j.properties
     - sdc-security.policy
-    - stagelibswhitelist.properties
     - sdc.properties
   when: sdc_conf_dir != "{{ sdc_dist }}/etc"
 
@@ -88,17 +90,31 @@
   notify: "Restart {{ sdc_instance }}"
 
 - name: Deploy config template
-  sudo_user: "{{ sdc_user }}"
+  become_user: "{{ sdc_user }}"
   template: dest="{{ sdc_conf_dir }}/sdc.properties" src=sdc.properties.j2
   notify: "Restart {{ sdc_instance }}"
 
+- name: Deploy LDAP config
+  become_user: "{{ sdc_user }}"
+  template:
+    dest="{{ sdc_conf_dir }}/{{ item }}"
+    src="{{ item }}.j2"
+    owner="{{ sdc_user }}"
+    group="{{ sdc_group }}"
+    mode=400
+  with_items:
+    - ldap-login.conf
+    - ldap-bind-password.txt
+  notify: "Restart {{ sdc_instance }}"
+  when: http_authentication_login_module == "ldap"
+
 - name: Install security policy
-  sudo_user: "{{ sdc_user }}"
+  become_user: "{{ sdc_user }}"
   template: dest="{{ sdc_conf_dir }}/sdc-security.policy" src=sdc-security.policy.j2
   notify: "Restart {{ sdc_instance }}"
 
 - name: Install JMX access control files
-  sudo_user: "{{ sdc_user }}"
+  become_user: "{{ sdc_user }}"
   template:
     dest="{{ sdc_conf_dir }}/{{ item }}"
     src="{{ item }}.j2"
@@ -112,10 +128,10 @@
   when: jmx_authenticate == true
 
 - name: systemd daemon-reload
-  sudo: yes
+  become: yes
   command: /usr/bin/systemctl daemon-reload
   when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7' and sdc_init_updated | changed
 
 - name: "Ensure {{ sdc_instance }} is running"
-  sudo: yes
+  become: yes
   service: name="{{ sdc_instance }}" state=started
