@@ -1,6 +1,6 @@
 #
 #
-# Licensed to the Apache Software Foundation (ASF) under one
+# Licensed under the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
 # regarding copyright ownership.  The ASF licenses this file
@@ -45,6 +45,7 @@ sdc.base.http.url={{ sdc_base_http_url }}
 http.port={{ http_port | default(18630) }}
 
 # HTTPS configuration
+
 # The port the data collector runs the SDC HTTPS endpoint.
 # If different that -1, the SDC will run over SSL on this port
 # If 0, the SDC will pick up a random port
@@ -63,8 +64,28 @@ https.keystore.password={{ sdc_keystore_password | default("@sdc-keystore-passwo
 #
 http.authentication={{ http_authentication | default("form") }}
 
+# Authentication Login Module
+# Valid values are: 'file' and 'ldap'
+# For 'file', the authentication and role information is read from a property file (etc/basic-realm.properties,
+#   etc/digest-realm.properties or etc/form-realm.properties based on the 'http.authentication' value).
+# For 'ldap', the authentication and role information is read from a LDAP Server
+#   and LDAP connection information is read from etc/ldap-login.conf.
+http.authentication.login.module={{ http_authentication_login_module | default("file") }}
+
+# The realm used for authentication
+# A file with the realm name and '.properties' extension must exist in the data collector configuration directory
+# If this property is not set, the realm name is '<http.authentication>-realm'
+#http.digest.realm=local-realm
+
 # Check the permissions of the realm file should be owner only
 http.realm.file.permission.check={{ http_realm_file_permission_check | default("true") }}
+
+# LDAP group to Data Collector role mapping
+# the mapping is specified as the following pattern:
+#    <ldap-group>:<sdc-role>(,<sdc-role>)*(;<ldap-group>:<sdc-role>(,<sdc-role>)*)*
+# e.g.
+#    Administrator:admin;Manager:manager;DevOP:creator;Tester:guest;
+http.authentication.ldap.role.mapping={{ http_authentication_ldap_role_mapping | default("") }}
 
 # Runs the data collector within a Kerberos session which is propagated to all stages.
 # This is useful for stages that require Kerberos authentication with the services they interact with
@@ -110,8 +131,11 @@ max.logtail.concurrent.requests={{ max_logtail_concurrent_requests | default(5) 
 # Max number of concurrent WebSocket calls allowed
 max.webSockets.concurrent.requests={{ max_websockets_concurrent_requests | default(15) }}
 
+# Customize header title for SDC UI
+ui.header.title=
+
 ui.local.help.base.url=/docs
-ui.hosted.help.base.url=http://streamsets.com/documentation/datacollector/{{ sdc_version }}/help/
+ui.hosted.help.base.url=https://www.streamsets.com/documentation/datacollector/{{ sdc_version }}/userguide/help
 
 ui.refresh.interval.ms={{ ui_refresh_interval_ms | default(2000) }}
 ui.jvmMetrics.refresh.interval.ms={{ ui_jvm_metrics_refresh_interval | default(4000) }}
@@ -203,3 +227,19 @@ library.alias.streamsets-datacollector-mongodb_3_0_2-lib=streamsets-datacollecto
 #
 stage.alias.streamsets-datacollector-basic-lib,com_streamsets_pipeline_stage_destination_jdbc_JdbcDTarget=streamsets-datacollector-jdbc-lib,com_streamsets_pipeline_stage_destination_jdbc_JdbcDTarget
 stage.alias.streamsets-datacollector-basic-lib,com_streamsets_pipeline_stage_origin_jdbc_JdbcDSource=streamsets-datacollector-jdbc-lib,com_streamsets_pipeline_stage_origin_jdbc_JdbcDSource
+stage.alias.streamsets-datacollector-basic-lib,com_streamsets_pipeline_stage_origin_omniture_OmnitureDSource=streamsets-datacollector-omniture-lib,com_streamsets_pipeline_stage_origin_omniture_OmnitureDSource
+
+
+# System and user stage libraries whitelists and blacklists
+#
+# If commented out all stagelibraries directories are used.
+#
+# Given 'system' or 'user', only whitelist or blacklist can be set, if both are set the Data Collector will fail to start
+#
+# Specify stage library directories separated by commas
+#
+#system.stagelibs.whitelist=
+#system.stagelibs.blacklist=
+#
+#user.stagelibs.whitelist=
+#user.stagelibs.blacklist=

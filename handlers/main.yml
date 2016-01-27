@@ -1,5 +1,5 @@
 ---
 # handlers file for ansible-datacollector
 - name: "Restart {{ sdc_instance }}"
-  sudo: yes
+  become: yes
   service: name={{ sdc_instance }} state=restarted

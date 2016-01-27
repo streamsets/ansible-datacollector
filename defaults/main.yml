@@ -1,8 +1,9 @@
 ---
 # defaults file for ansible-datacollector
-sdc_version: 1.1.1
+sdc_version: 1.2.0.0
 sdc_release: "streamsets-datacollector-{{ sdc_version }}"
-sdc_release_url: "http://archives.streamsets.com.s3.amazonaws.com/datacollector/{{ sdc_version }}/tarball/{{ sdc_release }}.tgz"
+sdc_tarball: "streamsets-datacollector-all-{{ sdc_version }}.tgz"
+sdc_release_url: "http://archives.streamsets.com.s3.amazonaws.com/datacollector/{{ sdc_version }}/tarball/{{ sdc_tarball }}"
 # defaults for a single instance installation
 sdc_install_base: /opt/streamsets/datacollector
 sdc_dist: "{{ sdc_install_base }}/{{ sdc_version }}"
@@ -21,10 +22,33 @@ https_port: -1
 sdc_keystore_path: keystore.jks
 sdc_keystore_password: "@sdc-keystore-password.txt@"
 http_authentication: form
+# Use 'ldap' instead of file and configure vars prefixed with ldap to use
+# LDAP or Active Directory for authentication.
+http_authentication_login_module: file
+# ldap_use_ldaps: "true"
+# ldap_port: 636
+# ldap_bind_dn: "cn=DirectoryManager"
+# ldap_bind_password: "password"
+# ldap_authentication_method: "simple"
+# ldap_force_binding_login: "false"
+# ldap_user_base_dn: "ou=people,dc=example,dc=com"
+# ldap_user_rdn_attribute: "uid"
+# ldap_user_id_attribute: "uid"
+# ldap_user_password_attribute: "userPassword"
+# ldap_user_object_class: "inetOrgPerson"
+# ldap_role_base_dn: "ou=groups,dc=example,dc=com"
+# ldap_role_name_attribute: "cn"
+# ldap_role_member_attribute: "uniqueMember"
+# ldap_role_object_class: "groupOfUniqueNames"
+# LDAP group to Data Collector role mapping
+# Uncomment the variable below and configure appropriately.
+# The mapping is specified as the following pattern:
+#    <ldap-group>:<sdc-role>(,<sdc-role>)*(;<ldap-group>:<sdc-role>(,<sdc-role>)*)*
+# e.g.
+# http_authentication_ldap_role_mapping: "Administrator:admin;Manager:manager;DevOP:creator;Tester:guest;"
 kerberos_client_enabled: "false"
 kerberos_client_principal: sdc/_HOST@EXAMPLE.COM
 kerberos_client_keytab: sdc.keytab
-preview_max_batch_size: 10
 preview_max_batch_size: 10
 production_max_batch_size: 1000
 production_max_error_records_per_stage: 100
