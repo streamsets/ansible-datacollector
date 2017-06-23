@@ -34,10 +34,19 @@ grant codebase "file://${sdc.dist.dir}/api-lib/*" {
 grant codebase "file://${sdc.dist.dir}/container-lib/*" {
   permission java.security.AllPermission;
 };
-
+grant codebase "file://${sdc.dist.dir}/streamsets-libs-extras/-" {
+  permission java.security.AllPermission;
+};
 // StreamSets stage libraries code base:
 grant codebase "file://${sdc.dist.dir}/streamsets-libs/-" {
   permission java.security.AllPermission;
+};
+grant codebase "file://${sdc.dist.dir}/user-libs/streamsets-datacollector-dev-lib/-" {
+  permission java.security.AllPermission;
+};
+// Groovy will parse files in a different context, so we need to grant it additional privileges
+grant codebase "file:/groovy/script" {
+  permission java.lang.RuntimePermission "getClassLoader";
 };
 
 // For details on how to grant specific permissions, refer to the Java Permissions Documentation:
