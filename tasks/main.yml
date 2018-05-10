@@ -73,7 +73,7 @@
     - sdc-log4j.properties
     - sdc-security.policy
     - sdc.properties
-  when: sdc_conf_dir != "{{ sdc_dist }}/etc"
+  when: sdc_conf_dir != "sdc_dist/etc"
 
 # Install templated configurations
 - name: Deploy init script
