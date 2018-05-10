@@ -61,7 +61,7 @@ https.keystore.password={{ sdc_keystore_password | default("@sdc-keystore-passwo
 https.cluster.keystore.path={{ https_cluster_keystore_path | default("/opt/security/jks/sdc-keystore.jks") }}
 
 # Password for keystore file on worker
-https.cluster.keystore.password={{ https_cluster_keystore_password | default('${file("/opt/security/jks/keystore-password.txt")}')
+https.cluster.keystore.password={{ https_cluster_keystore_password | default('${file("/opt/security/jks/keystore-password.txt")}') }}
 
 # Truststore configs
 # By default, if below configs are commented then cacerts from JRE lib directory will be used as truststore
