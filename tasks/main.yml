@@ -54,12 +54,9 @@
     - "{{ sdc_conf_dir }}"
     - "{{ sdc_libexec_dir }}"
 
-# Not all configs have been templated yet. These are all the default configs.
-- name: Copy default configs
-  become_user: "{{ sdc_user }}"
-  command: "cp {{ sdc_dist }}/etc/{{ item }} {{ sdc_conf_dir }}/"
-  args:
-    creates: "{{ sdc_conf_dir }}/{{ item }}"
+# Make sure source files exist before copying them to config dir
+- name: Stat existence of default configs
+  stat: path="{{ sdc_dist }}/etc/{{ item }}"
   with_items:
     - basic-realm.properties
     - digest-realm.properties
@@ -73,7 +70,18 @@
     - sdc-log4j.properties
     - sdc-security.policy
     - sdc.properties
-  when: sdc_conf_dir != "sdc_dist/etc"
+  register: stat_conf
+
+# Not all configs have been templated yet. These are all the default configs.
+# Only copy the file if the source file exists (see stat: above)
+- name: Copy default configs
+  become_user: "{{ sdc_user }}"
+  copy:
+    src: "{{ item.stat.path }}"
+    dest: "{{ sdc_conf_dir }}/{{ item.item }}"
+    remote_src: true
+  with_items: "{{ stat_conf.results }}"
+  when: (sdc_conf_dir != "sdc_dist/etc") and (item.stat.exists)
 
 # Install templated configurations
 - name: Deploy init script
