@@ -63,3 +63,6 @@ jmx_authenticate: false
 # jmx_monitor_password: mysecretpassword
 # SSL certificate must be trusted by the JVM by default or you must configure and add it to the truststore/keystore
 jmx_ssl: false
+# variables for sdcd-env.sh
+sdc_allow_unsupported_jdk: false
+
