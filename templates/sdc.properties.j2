@@ -20,14 +20,27 @@
 sdc.id={{ sdc_id }}
 {% endif %}
 
+# HTTP configuration
+
 # The base URL of the datacollector, used to create email alert messages.
-# If not set http://<hostname>:<http.port> is used
-# <hostname> is resolved using 'hostname -f'
+# # If not set http://<hostname>:<http.port> is used
+# # <hostname> is either taken from http.bindHost or resolved using
+# # 'hostname -f' if not configured.
+#sdc.base.http.url=http://<hostname>:<port>
 {% if sdc_base_http_url is defined %}
 sdc.base.http.url={{ sdc_base_http_url }}
 {% endif %}
 
-# HTTP configuration
+# Hostname or IP address that data collector will bind to.
+# # Default is 0.0.0.0 that will bind to all interfaces.
+#http.bindHost=0.0.0.0
+{% if sdc_bind_host is defined %}
+http.bindHost={{ sdc_bind_host }}
+{% endif %}
+
+# Maximum number of HTTP servicing threads.
+# #http.maxThreads=200
+
 # The port the data collector runs the SDC HTTP endpoint.
 # If different that -1, the SDC will run on this port
 # If 0, the SDC will pick up a random port
@@ -55,7 +68,7 @@ https.keystore.path={{ sdc_keystore_path | default("keystore.jks") }}
 # Password for the keystore file,
 # By default, the password is loaded from the 'sdc-keystore-password.txt'
 # from the SDC 'etc/' configuration directory
-https.keystore.password={{ sdc_keystore_password | default("@sdc-keystore-password.txt@") }}
+https.keystore.password={{ sdc_keystore_password | default('${file("keystore-password.txt")}') }}
 
 # Path to keystore file on worker node. This should always be an absolute location
 https.cluster.keystore.path={{ https_cluster_keystore_path | default("/opt/security/jks/sdc-keystore.jks") }}
@@ -125,8 +138,8 @@ http.authentication.ldap.role.mapping={{ http_authentication_ldap_role_mapping |
 # LDAP login module name as present in the JAAS config file.
 # If no value is specified, the login module name is assumed to be "ldap"
 ldap.login.module.name={{ ldap_login_module | default("ldap") }}
-# HTTP access control (CORS)
 
+# HTTP access control (CORS)
 http.access.control.allow.origin={{ http_access_control_allow_origin | default("*") }}
 http.access.control.allow.headers={{ http_access_control_allow_headers | default("origin, content-type, accept, authorization, x-requested-by, x-ss-user-auth-token, x-ss-rest-call") }}
 http.access.control.allow.methods={{ http_access_control_allow_methods | default("GET, POST, PUT, DELETE, OPTIONS, HEAD") }}
@@ -216,7 +229,7 @@ mail.smtps.auth={{ mail_smtps_auth | default("false") }}
 # If 'mail.smtp.auth' or 'mail.smtps.auth' are to true, these properties are used for the user/password credentials,
 # @email-password.txt@ will load the value from the 'email-password.txt' file in the config directory (where this file is)
 xmail.username={{ xmail_username | default("foo") }}
-xmail.password={{ xmail_password | default("@email-password.txt@") }}
+xmail.password={{ xmail_password | default('${file("email-password.txt")}') }}
 # FROM email address to use for the messages
 xmail.from.address={{ xmail_from_address | default("sdc@$localhost") }}
 
@@ -227,6 +240,15 @@ xmail.from.address={{ xmail_from_address | default("sdc@$localhost") }}
 #properties must be picked up. Note that the properties should not be prefixed with 'runtime.conf_' in this case.
 runtime.conf.location={{ runtime_conf_location | default("embedded") }}
 
+# Java Security properties
+#
+# Any configuration prefixed with 'java.security.<property>' will be set on the static instance java.security.Security
+# as part of SDC bootstrap process. This will change JVM configuration and should not be used when embedding and running
+# multiple SDC instances inside the same JVM.
+#
+# We're explicitly overriding this to zero as JVM will default to -1 if security manager is active.
+java.security.networkaddress.cache.ttl=0
+
 # Stage specific configuration(s)
 # The following config properties are for particular stages, please refer to their documentation for further details.
 
@@ -234,6 +256,7 @@ runtime.conf.location={{ runtime_conf_location | default("embedded") }}
 # Uncomment to enforce Hadoop components in SDC to always impersonate current user rather then use the impersonation
 # configuration option. Current user is a user who either started the pipeline or run preview.
 stage.conf_hadoop.always.impersonate.current.user={{ stage_conf_hadoop_always_impersonate_current_user | default("false") }}
+# Uncomment to enforce impersonated user name to be lower cased.
 stage.conf_hadoop.always.lowercase.user={{ stage_conf_hadoop_always_lowercase_user | default("false") }}
 
 # Shell executor
@@ -269,6 +292,9 @@ max.stage.private.classloaders={{ max_stage_private_classloaders | default(50) }
 # Increasing this value will not increase parallelisation of individual pipelines.
 runner.thread.pool.size={{ runner_thread_pool_size | default(50) }}
 
+# Uncomment to disable starting all previously running pipelines on SDC start up
+runner.boot.pipeline.restart={{ runner_bood_pipeline_restart | default("true") }}
+
 # Maximal number of runners (multithreaded pipelines)
 #
 # Maximal number of source-less pipeline instances (=runners) that are allowed for a single multi-threaded
@@ -279,6 +305,11 @@ pipeline.max.runners.count={{ pipeline_max_runners_count | default(50) }}
 # 
 # Uncomment if you need to disable the facility for automatic support bundle upload.
 bundle.upload.enabled={{ bundle_upload_enabled | default("true") }}
+
+# Uncomment to automatically generate and upload bundle on various errors. Enable with caution, uploading bundle
+# can be time consuming task (depending on size and internet speed) and pipelines can appear "frozen" during
+# the upload especially when many pipelines are failing at the same time.
+bundle.upload.on_error={{ bundle_upload_on_error | default("false") }}
 
 # Library aliases mapping to keep backward compatibility on pipelines when library names change
 # The current aliasing mapping is to handle 1.0.0beta2 to 1.0.0 library names changes
@@ -360,16 +391,27 @@ stage.alias.streamsets-datacollector-cdh_5_10-lib,com_streamsets_pipeline_stage_
 # setup-mapr script will not work properly.
 # 
 #system.stagelibs.whitelist=
-system.stagelibs.blacklist=streamsets-datacollector-mapr_5_0-lib,streamsets-datacollector-mapr_5_1-lib,streamsets-datacollector-mapr_5_2-lib
+system.stagelibs.blacklist=streamsets-datacollector-mapr_5_0-lib,streamsets-datacollector-mapr_5_1-lib,streamsets-datacollector-mapr_5_2-lib,streamsets-datacollector-mapr_6_0-lib,streamsets-datacollector-mapr_6_0-mep4-lib,streamsets-datacollector-mapr_spark_2_1_mep_3_0-lib
 #
 #user.stagelibs.whitelist=
 #user.stagelibs.blacklist=
+
+# Stage Classpath Validation
+#
+# Uncomment to disable best effort validation of each stage library classpath to detect known issues with
+# colliding dependencies (such as conflicting versions of the same dependency, ...). Result of the validation
+# is by default only printed to log.
+#stagelibs.classpath.validation.enable=false
+#
+# By default the validation result is only logged. Uncomment to prevent SDC to start if classpath of any
+# stage library is not considered valid.
+#stagelibs.classpath.validation.terminate=true
 
 #
 # Additional Configuration files to include in to the configuration.
 # Value of this property is the name of the configuration file separated by commas.
 #
-config.includes=dpm.properties,vault.properties
+config.includes=dpm.properties,vault.properties,credential-stores.properties
 
 
 #

@@ -1,19 +1,19 @@
 ---
 # defaults file for ansible-datacollector
-sdc_version: 2.6.0.1
+sdc_version: 3.2.0.0
 sdc_release: "streamsets-datacollector-{{ sdc_version }}"
 sdc_tarball: "streamsets-datacollector-all-{{ sdc_version }}.tgz"
 sdc_release_url: "http://archives.streamsets.com.s3.amazonaws.com/datacollector/{{ sdc_version }}/tarball/{{ sdc_tarball }}"
 # defaults for a single instance installation
-sdc_install_base: /opt/streamsets/datacollector
+sdc_install_base: /opt/streamsets-datacollector
 sdc_dist: "{{ sdc_install_base }}/{{ sdc_version }}"
-sdc_instance: datacollector
+sdc_instance: sdc
 sdc_user: sdc
 sdc_group: sdc
 sdc_data_dir: "/var/lib/streamsets/{{ sdc_instance }}"
 sdc_resources_dir: "/var/lib/streamsets/resources"
 sdc_log_dir: "/var/log/streamsets/{{ sdc_instance }}"
-sdc_conf_dir: "/etc/streamsets/{{ sdc_instance }}"
+sdc_conf_dir: "/etc/{{ sdc_instance }}"
 sdc_libexec_dir: "{{ sdc_conf_dir }}/libexec"
 # commonly tuned settings for sdc.properties.
 # full list of variables can be found by looking at templates/sdc.properties.j2

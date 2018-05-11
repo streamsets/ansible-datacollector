@@ -20,9 +20,9 @@ User={{ sdc_user }}
 Group={{ sdc_user }}
 LimitNOFILE=32768
 Environment=SDC_CONF={{ sdc_conf_dir }}
-Environment=SDC_HOME={{ sdc_install_base }}/current
+Environment=SDC_HOME={{ sdc_dist }}
 Environment=SDC_LOG={{ sdc_log_dir }}
 Environment=SDC_DATA={{ sdc_data_dir }}
-ExecStart={{ sdc_install_base }}/current/bin/streamsets dc -verbose
+ExecStart={{ sdc_dist }}/bin/streamsets dc -verbose
 TimeoutSec=60
 
