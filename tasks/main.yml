@@ -53,41 +53,34 @@
   with_items:
     - "{{ sdc_conf_dir }}"
     - "{{ sdc_libexec_dir }}"
-
-# Make sure source files exist before copying them to config dir
-- name: Stat existence of default configs
-  stat: path="{{ sdc_dist }}/etc/{{ item }}"
-  with_items:
-    - basic-realm.properties
-    - digest-realm.properties
-    - email-password.txt
-    - form-realm.properties
-    - kafka_client_jaas.conf
-    - keystore-password.txt
-    - keystore.jks
-    - ldap-bind-password.txt
-    - ldap-login.conf
-    - sdc-log4j.properties
-    - sdc-security.policy
-    - sdc.properties
-  register: stat_conf
+    - "{{ sdc_data_dir }}"
+    - "{{ sdc_log_dir }}"
 
 # Not all configs have been templated yet. These are all the default configs.
-# Only copy the file if the source file exists (see stat: above)
+# Copy all of the files.  Some may be changed by templates later.
 - name: Copy default configs
   become_user: "{{ sdc_user }}"
-  copy:
-    src: "{{ item.stat.path }}"
-    dest: "{{ sdc_conf_dir }}/{{ item.item }}"
-    remote_src: true
-  with_items: "{{ stat_conf.results }}"
-  when: (sdc_conf_dir != "sdc_dist/etc") and (item.stat.exists)
+  command: "cp -r {{sdc_dist }}/etc/. {{ sdc_conf_dir }}/"
+  when: sdc_conf_dir != "sdc_dist/etc"
 
 # Install templated configurations
 - name: Deploy init script
   template: dest="/etc/init.d/{{ sdc_instance }}" src=initd.j2 owner=root group=root mode=755
   register: sdc_init_updated
   notify: "Restart {{ sdc_instance }}"
+  when: not ansible_service_mgr == "systemd"
+
+- name: Deploy systemd script
+  template: 
+    dest: /etc/systemd/system/{{ sdc_instance }}.service
+    src: systemd.service.j2
+    owner: root
+    group: root
+    mode: 644
+  register: sdc_systemd_updated
+  modify: "Restart {{ sdc_instance }}"
+  when: ansible_service_mgr == "systemd"
+
 
 - name: Deploy env script
   template:
@@ -135,11 +128,20 @@
   notify: "Restart {{ sdc_instance }}"
   when: jmx_authenticate == true
 
-- name: systemd daemon-reload
+- name: "Ensure {{ sdc_intance }} is running in systemd"
   become: yes
-  command: /usr/bin/systemctl daemon-reload
-  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7' and sdc_init_updated | changed
+  systemd:
+    daemon_reload: "{{ sdc_systemd_updated.changed }}"
+    name: "{{ sdc_instance }}"
+    enabled: yes
+    state: started
+  when: ansible_service_mgr == "systemd"
 
-- name: "Ensure {{ sdc_instance }} is running"
+- name: "Ensure {{ sdc_instance }} is running in initd"
   become: yes
-  service: name="{{ sdc_instance }}" state=started
+  service: 
+    name: "{{ sdc_instance }}"
+    state: started
+    use: service
+  when: not ansible_service_mgr == "systemd"
+
