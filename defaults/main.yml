@@ -25,7 +25,9 @@ http_authentication: form
 # Use 'ldap' instead of file and configure vars prefixed with ldap to use
 # LDAP or Active Directory for authentication.
 http_authentication_login_module: file
+# ldap_debug: "false"
 # ldap_use_ldaps: "true"
+# ldap_use_starttls: "false"
 # ldap_hostname: "some.hostname"
 # ldap_port: 636
 # ldap_bind_dn: "cn=DirectoryManager"
@@ -37,10 +39,12 @@ http_authentication_login_module: file
 # ldap_user_id_attribute: "uid"
 # ldap_user_password_attribute: "userPassword"
 # ldap_user_object_class: "inetOrgPerson"
+# ldap_user_filter: "uid={user}"
 # ldap_role_base_dn: "ou=groups,dc=example,dc=com"
 # ldap_role_name_attribute: "cn"
 # ldap_role_member_attribute: "uniqueMember"
 # ldap_role_object_class: "groupOfUniqueNames"
+# ldap_role_filter: "member={dn}"
 # LDAP group to Data Collector role mapping
 # Uncomment the variable below and configure appropriately.
 # The mapping is specified as the following pattern:

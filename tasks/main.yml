@@ -60,7 +60,7 @@
 # Copy all of the files.  Some may be changed by templates later.
 - name: Copy default configs
   become_user: "{{ sdc_user }}"
-  command: "cp -r {{sdc_dist }}/etc/. {{ sdc_conf_dir }}/"
+  command: "cp -rn {{sdc_dist }}/etc/. {{ sdc_conf_dir }}/"
   when: sdc_conf_dir != "sdc_dist/etc"
 
 # Install templated configurations

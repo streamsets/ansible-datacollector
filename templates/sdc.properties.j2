@@ -23,23 +23,23 @@ sdc.id={{ sdc_id }}
 # HTTP configuration
 
 # The base URL of the datacollector, used to create email alert messages.
-# # If not set http://<hostname>:<http.port> is used
-# # <hostname> is either taken from http.bindHost or resolved using
-# # 'hostname -f' if not configured.
+# If not set http://<hostname>:<http.port> is used
+# <hostname> is either taken from http.bindHost or resolved using
+# 'hostname -f' if not configured.
 #sdc.base.http.url=http://<hostname>:<port>
 {% if sdc_base_http_url is defined %}
 sdc.base.http.url={{ sdc_base_http_url }}
 {% endif %}
 
 # Hostname or IP address that data collector will bind to.
-# # Default is 0.0.0.0 that will bind to all interfaces.
+# Default is 0.0.0.0 that will bind to all interfaces.
 #http.bindHost=0.0.0.0
 {% if sdc_bind_host is defined %}
 http.bindHost={{ sdc_bind_host }}
 {% endif %}
 
 # Maximum number of HTTP servicing threads.
-# #http.maxThreads=200
+#http.maxThreads=200
 
 # The port the data collector runs the SDC HTTP endpoint.
 # If different that -1, the SDC will run on this port
@@ -66,7 +66,7 @@ http.enable.forwarded.requests={{ http_enable_forwarded_requests | default("fals
 https.keystore.path={{ sdc_keystore_path | default("keystore.jks") }}
 
 # Password for the keystore file,
-# By default, the password is loaded from the 'sdc-keystore-password.txt'
+# By default, the password is loaded from the 'keystore-password.txt'
 # from the SDC 'etc/' configuration directory
 https.keystore.password={{ sdc_keystore_password | default('${file("keystore-password.txt")}') }}
 
@@ -106,7 +106,7 @@ https.cluster.truststore.password={{ https_cluster_truststore_password }}
 http.session.max.inactive.interval={{ http_session_max_inactive_interval | default(86400) }}
 
 # The authentication for the HTTP endpoint of the data collector
-# Valid values are: 'none', 'digest' and 'form'
+# Valid values are: 'none', 'basic', 'digest', or 'form'
 #
 http.authentication={{ http_authentication | default("form") }}
 
@@ -227,11 +227,11 @@ mail.smtps.host={{ mail_smtps_host | default("localhost") }}
 mail.smtps.port={{ mail_smtps_port | default(465) }}
 mail.smtps.auth={{ mail_smtps_auth | default("false") }}
 # If 'mail.smtp.auth' or 'mail.smtps.auth' are to true, these properties are used for the user/password credentials,
-# @email-password.txt@ will load the value from the 'email-password.txt' file in the config directory (where this file is)
+# ${file("email-password.txt")} will load the value from the 'email-password.txt' file in the config directory (where this file is)
 xmail.username={{ xmail_username | default("foo") }}
 xmail.password={{ xmail_password | default('${file("email-password.txt")}') }}
 # FROM email address to use for the messages
-xmail.from.address={{ xmail_from_address | default("sdc@$localhost") }}
+xmail.from.address={{ xmail_from_address | default("sdc@localhost") }}
 
 #Indicates the location where runtime configuration properties can be found.
 #Value 'embedded' implies that the runtime configuration properties are present in this file and are prefixed with
