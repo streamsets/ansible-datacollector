@@ -1,21 +1,24 @@
 ldap {
   com.streamsets.datacollector.http.LdapLoginModule required
-  debug="false"
-  useLdaps={{ ldap_use_ldaps | default("false") }}
+  debug="{{ ldap_debug | default("false") }}"
+  useLdaps="{{ ldap_use_ldaps | default("false") }}"
+  useStartTLS="{{ ldap_use_starttls | default("false") }}"
   contextFactory="com.sun.jndi.ldap.LdapCtxFactory"
-  hostname="#### LDAP HOST ####"
-  port={{ ldap_port | default("389") }}
-  bindDn={{ ldap_bind_dn }}
+  hostname="{{ ldap_hostname | default("#### LDAP HOST ####") }}"
+  port="{{ ldap_port | default("389") }}"
+  bindDn="{{ ldap_bind_dn }}"
   bindPassword="@ldap-bind-password.txt@"
-  authenticationMethod={{ ldap_authentication_method | default("simple") }}
-  forceBindingLogin={{ ldap_force_binding_login | default("false") }}
-  userBaseDn={{ ldap_user_base_dn }}
-  userRdnAttribute={{ ldap_user_rdn_attribute | default("uid") }}
-  userIdAttribute={{ ldap_user_id_attribute | default("uid") }}
-  userPasswordAttribute={{ ldap_user_password_attribute | default("userPassword") }}
-  userObjectClass={{ ldap_user_object_class | default("inetOrgPerson") }}
-  roleBaseDn={{ ldap_role_base_dn }}
-  roleNameAttribute={{ ldap_role_name_attribute | default("cn") }}
-  roleMemberAttribute={{ ldap_role_member_attribute | default("uniqueMember") }}
-  roleObjectClass={{ ldap_role_object_class default("groupOfUniqueNames") }};
+  authenticationMethod="{{ ldap_authentication_method | default("simple") }}"
+  forceBindingLogin="{{ ldap_force_binding_login | default("false") }}"
+  userBaseDn="{{ ldap_user_base_dn }}"
+  userRdnAttribute="{{ ldap_user_rdn_attribute | default("uid") }}"
+  userIdAttribute="{{ ldap_user_id_attribute | default("uid") }}"
+  userPasswordAttribute="{{ ldap_user_password_attribute | default("userPassword") }}"
+  userObjectClass="{{ ldap_user_object_class | default("inetOrgPerson") }}"
+  userFilter="{{ ldap_user_filter | default("uid={user}") }}"
+  roleBaseDn="{{ ldap_role_base_dn }}"
+  roleNameAttribute="{{ ldap_role_name_attribute | default("cn") }}"
+  roleMemberAttribute="{{ ldap_role_member_attribute | default("uniqueMember") }}"
+  roleObjectClass="{{ ldap_role_object_class | default("groupOfUniqueNames") }}"
+  roleFilter="{{ ldap_role_filter | default("member={dn}") }}";
 };

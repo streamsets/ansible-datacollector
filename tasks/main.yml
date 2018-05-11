@@ -53,37 +53,48 @@
   with_items:
     - "{{ sdc_conf_dir }}"
     - "{{ sdc_libexec_dir }}"
+    - "{{ sdc_data_dir }}"
+    - "{{ sdc_log_dir }}"
 
 # Not all configs have been templated yet. These are all the default configs.
+# Copy all of the files.  Some may be changed by templates later.
 - name: Copy default configs
   become_user: "{{ sdc_user }}"
-  command: "cp {{ sdc_dist }}/etc/{{ item }} {{ sdc_conf_dir }}/"
-  args:
-    creates: "{{ sdc_conf_dir }}/{{ item }}"
-  with_items:
-    - basic-realm.properties
-    - digest-realm.properties
-    - email-password.txt
-    - form-realm.properties
-    - kafka_client_jaas.conf
-    - keystore-password.txt
-    - keystore.jks
-    - ldap-bind-password.txt
-    - ldap-login.conf
-    - sdc-log4j.properties
-    - sdc-security.policy
-    - sdc.properties
-  when: sdc_conf_dir != "{{ sdc_dist }}/etc"
+  command: "cp -rn {{sdc_dist }}/etc/. {{ sdc_conf_dir }}/"
+  when: sdc_conf_dir != "sdc_dist/etc"
 
 # Install templated configurations
 - name: Deploy init script
   template: dest="/etc/init.d/{{ sdc_instance }}" src=initd.j2 owner=root group=root mode=755
   register: sdc_init_updated
   notify: "Restart {{ sdc_instance }}"
+  when: not ansible_service_mgr == "systemd"
 
-- name: Deploy env script
+- name: Deploy systemd script
+  template: 
+    dest: /etc/systemd/system/{{ sdc_instance }}.service
+    src: systemd.service.j2
+    owner: root
+    group: root
+    mode: 644
+  register: sdc_systemd_updated
+  modify: "Restart {{ sdc_instance }}"
+  when: ansible_service_mgr == "systemd"
+
+
+- name: Deploy env script (sdcd-env.sh)
   template:
     dest="{{ sdc_libexec_dir }}/sdcd-env.sh"
+    src=sdcd-env.sh.j2 owner="{{ sdc_user }}"
+    group="{{ sdc_group }}"
+    mode=755
+  notify: "Restart {{ sdc_instance }}"
+
+# under systemd, the 'sdc-env.sh' script is used.
+# just deploy our template to both places
+- name: Deploy env script (sdc-env.sh)
+  template:
+    dest="{{ sdc_libexec_dir }}/sdc-env.sh"
     src=sdcd-env.sh.j2 owner="{{ sdc_user }}"
     group="{{ sdc_group }}"
     mode=755
@@ -127,11 +138,20 @@
   notify: "Restart {{ sdc_instance }}"
   when: jmx_authenticate == true
 
-- name: systemd daemon-reload
+- name: "Ensure {{ sdc_intance }} is running in systemd"
   become: yes
-  command: /usr/bin/systemctl daemon-reload
-  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7' and sdc_init_updated | changed
+  systemd:
+    daemon_reload: "{{ sdc_systemd_updated.changed }}"
+    name: "{{ sdc_instance }}"
+    enabled: yes
+    state: started
+  when: ansible_service_mgr == "systemd"
 
-- name: "Ensure {{ sdc_instance }} is running"
+- name: "Ensure {{ sdc_instance }} is running in initd"
   become: yes
-  service: name="{{ sdc_instance }}" state=started
+  service: 
+    name: "{{ sdc_instance }}"
+    state: started
+    use: service
+  when: not ansible_service_mgr == "systemd"
+
