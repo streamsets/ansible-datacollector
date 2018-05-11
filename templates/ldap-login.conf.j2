@@ -3,7 +3,7 @@ ldap {
   debug="false"
   useLdaps={{ ldap_use_ldaps | default("false") }}
   contextFactory="com.sun.jndi.ldap.LdapCtxFactory"
-  hostname="#### LDAP HOST ####"
+  hostname={{ ldap_hostname | default("#### LDAP HOST ####") }}
   port={{ ldap_port | default("389") }}
   bindDn={{ ldap_bind_dn }}
   bindPassword="@ldap-bind-password.txt@"

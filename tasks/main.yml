@@ -82,9 +82,19 @@
   when: ansible_service_mgr == "systemd"
 
 
-- name: Deploy env script
+- name: Deploy env script (sdcd-env.sh)
   template:
     dest="{{ sdc_libexec_dir }}/sdcd-env.sh"
+    src=sdcd-env.sh.j2 owner="{{ sdc_user }}"
+    group="{{ sdc_group }}"
+    mode=755
+  notify: "Restart {{ sdc_instance }}"
+
+# under systemd, the 'sdc-env.sh' script is used.
+# just deploy our template to both places
+- name: Deploy env script (sdc-env.sh)
+  template:
+    dest="{{ sdc_libexec_dir }}/sdc-env.sh"
     src=sdcd-env.sh.j2 owner="{{ sdc_user }}"
     group="{{ sdc_group }}"
     mode=755

@@ -10,22 +10,23 @@ sdc_dist: "{{ sdc_install_base }}/{{ sdc_version }}"
 sdc_instance: sdc
 sdc_user: sdc
 sdc_group: sdc
-sdc_data_dir: "/var/lib/streamsets/{{ sdc_instance }}"
-sdc_resources_dir: "/var/lib/streamsets/resources"
-sdc_log_dir: "/var/log/streamsets/{{ sdc_instance }}"
+sdc_data_dir: "/var/lib/{{ sdc_instance }}"
+sdc_resources_dir: "{{ sdc_dist }}/resources"
+sdc_log_dir: "/var/log/{{ sdc_instance }}"
 sdc_conf_dir: "/etc/{{ sdc_instance }}"
-sdc_libexec_dir: "{{ sdc_conf_dir }}/libexec"
+sdc_libexec_dir: "{{ sdc_dist }}/libexec"
 # commonly tuned settings for sdc.properties.
 # full list of variables can be found by looking at templates/sdc.properties.j2
 http_port: 18630
 https_port: -1
 sdc_keystore_path: keystore.jks
-sdc_keystore_password: "@sdc-keystore-password.txt@"
+sdc_keystore_password: '${file("keystore-password.txt")}'
 http_authentication: form
 # Use 'ldap' instead of file and configure vars prefixed with ldap to use
 # LDAP or Active Directory for authentication.
 http_authentication_login_module: file
 # ldap_use_ldaps: "true"
+# ldap_hostname: "some.hostname"
 # ldap_port: 636
 # ldap_bind_dn: "cn=DirectoryManager"
 # ldap_bind_password: "password"
@@ -65,4 +66,5 @@ jmx_authenticate: false
 jmx_ssl: false
 # variables for sdcd-env.sh
 sdc_allow_unsupported_jdk: false
+sdc_java_opts_mem: "1024m"
 
