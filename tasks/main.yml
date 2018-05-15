@@ -108,6 +108,24 @@
   notify: "Restart {{ sdc_instance }}"
   when: http_authentication_login_module == "ldap"
 
+- name: Deploy Credentials config
+  become_user: "{{ sdc_user }}"
+  template: 
+    dest="{{ sdc_conf_dir }}/credential-stores.properties" 
+    src=credential-stores.properties.j2
+  notify: "Restart {{ sdc_instance }}"
+  when: sdc_credentialStores is defined
+
+- name: Deploy vault secret id file, if exists
+  become_user: "{{ sdc_user }}"
+  copy:
+    src: "vault-secret-id"
+    dest: "{{ sdc_conf_dir }}/vault-secret-id"
+    mode: 0600
+  notify: "Restart {{ sdc_instance }}"
+  ignore_errors: true
+  when: (sdc_credentialStores is defined) and ( sdc_credentialStores | search("vault") )
+
 - name: Install security policy
   become_user: "{{ sdc_user }}"
   template: dest="{{ sdc_conf_dir }}/sdc-security.policy" src=sdc-security.policy.j2
