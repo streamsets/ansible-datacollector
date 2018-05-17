@@ -55,7 +55,7 @@ export SDC_FILE_LIMIT="${SDC_FILE_LIMIT:-32768}"
 
 # JVM options for the data collector process
 #
-export SDC_JAVA_OPTS="-Xmx1024m -Xms1024m -server -XX:-OmitStackTraceInFastThrow ${SDC_JAVA_OPTS}"
+export SDC_JAVA_OPTS="-Xmx{{ sdc_java_opts_mem | default('1024m') }} -Xms{{ sdc_java_opts_mem | default('1024m') }} -server -XX:-OmitStackTraceInFastThrow ${SDC_JAVA_OPTS}"
 
 # Indicate that MapR Username/Password security is enabled
 #export SDC_JAVA_OPTS="-Dmaprlogin.password.enabled=true ${SDC_JAVA_OPTS}"
@@ -78,7 +78,7 @@ export SDC_HEAPDUMP_ON_OOM=true
 export SDC_GC_LOGGING=true
 
 # SDC will by default only run on Oracle JDK, any other JDK has to be explicitly enabled
-export SDC_ALLOW_UNSUPPORTED_JDK=${SDC_ALLOW_UNSUPPORTED_JDK:-false}
+export SDC_ALLOW_UNSUPPORTED_JDK={{ sdc_allow_unsupported_jdk | lower }}
 
 {% if jmx_enable == true %}
 # JMX Configuration
