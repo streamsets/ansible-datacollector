@@ -15,6 +15,9 @@ sdc_resources_dir: "{{ sdc_dist }}/resources"
 sdc_log_dir: "/var/log/{{ sdc_instance }}"
 sdc_conf_dir: "/etc/{{ sdc_instance }}"
 sdc_libexec_dir: "{{ sdc_dist }}/libexec"
+# add variable for sdc.properties template file,
+# to allow playbooks to specify the complete file
+sdc_properties: sdc.properties.j2
 # commonly tuned settings for sdc.properties.
 # full list of variables can be found by looking at templates/sdc.properties.j2
 http_port: 18630
