@@ -78,7 +78,7 @@
     group: root
     mode: 644
   register: sdc_systemd_updated
-  modify: "Restart {{ sdc_instance }}"
+  notify: "Restart {{ sdc_instance }}"
   when: ansible_service_mgr == "systemd"
 
 
